@@ -1,0 +1,13 @@
+# define dict with debian versions and release names (need for install on Astra Linux)
+debian_versions:
+  6: squeeze
+  7: wheezy
+  8: jessie
+  9: stretch
+  10: buster
+  11: bullseye
+  12: bookworm
+
+# create alias for used "docker-compose" syntax of command instead of "docker compose"
+compose_v1_syntax: true
+# .. (add only alias for old syntax - install latest version of compose)

@@ -1,0 +1,5 @@
+timezone: Europe/Moscow
+
+# last version for Astra Linux CE (default installed python3.5)
+set_python_ver: 3.7
+# .. https://wiki.astralinux.ru/pages/viewpage.action?pageId=147162390

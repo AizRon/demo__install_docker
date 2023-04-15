@@ -1,0 +1,62 @@
+- name: "install Docker using the repository"
+  block:
+    - name: mkdir /etc/apt/keyrings
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+
+    - name: define 'release' if 'Astra Linux'
+      command: cat /etc/debian_version
+      when: "'Astra Linux' in ansible_facts.distribution"
+      register: num_ver
+
+    - set_fact:
+        distribution: "{{ 
+          'debian' if 'Astra Linux' in ansible_facts.distribution 
+          else ansible_facts.distribution.lower()
+        }}"
+        release: "{{ 
+          debian_versions[num_ver.stdout | int] if 'Astra Linux' in ansible_facts.distribution 
+          else ansible_facts.distribution_release.lower()
+        }}"
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: "https://download.docker.com/linux/{{ distribution }}/gpg"
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: "deb https://download.docker.com/linux/{{ distribution }} {{ release }} stable"
+        state: present
+
+    - name: install Docker's packages
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+
+#    - name: start docker service
+#      service:
+#        name: dockerd
+#        state: started
+
+    # [optional] compose V2: https://docs.docker.com/compose/cli-command-compatibility/
+    - name: '[optional] create "alias": <docker-compose> to <docker compose>'
+      lineinfile:
+        path: /bin/docker-compose
+        line: 'docker compose --compatibility "$@"'
+        owner: root
+        group: root
+        mode: '0755'
+        create: yes
+      when: compose_v1_syntax
+
+    - set_fact:
+        docker_not_installed: false
+
+  when: docker_not_installed

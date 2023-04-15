@@ -1,0 +1,61 @@
+- name: "install Docker from binaries (+ compose standalone)"
+  block:
+    - name: Docker Engine
+      block:
+        - name: mkdir for download
+          file:
+            path: "{{ download_dir }}"
+            state: directory
+
+        - name: unarchive docker engine
+          unarchive:
+            src: "https://download.docker.com/linux/static/stable/{{ ansible_facts.architecture }}/docker-{{ docker_ver }}.tgz"
+            dest: "{{ download_dir }}"
+            remote_src: yes
+
+        - name: copy to /usr/bin
+          copy:
+            src: "{{ download_dir }}/docker/"
+            dest: /usr/bin
+            remote_src: yes
+
+        - name: start the Docker daemon
+          shell: dockerd &
+
+      when: install_docker_engine | default(true)
+
+
+    - name: Docker Compose (standalone)
+      block:
+        - name: download docker-compose from github to /usr/local/bin
+          get_url:
+            url: "https://github.com/docker/compose/releases/download/{{ compose_ver }}/docker-compose-linux-{{ ansible_facts.architecture }}"
+            dest: /usr/local/bin/docker-compose
+            mode: +x
+
+        - name: create softlink to /usr/bin
+          file:
+            src: /usr/local/bin/docker-compose
+            dest: /usr/bin/docker-compose
+            state: link
+
+      when: install_docker_compose | default(true)
+
+
+    - name: Docker CLI bash-completion
+      block:
+        - name: download docker.sh to /etc/bash_completion.d/
+          get_url:
+            url: "https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker"
+            dest: /etc/bash_completion.d/docker.sh
+
+        - debug:
+            msg: 'bash-completion installed. Need logout and login again'
+
+      when: install_bash_completion | default(true)
+
+
+    - set_fact:
+        docker_not_installed: false
+
+  when: docker_not_installed

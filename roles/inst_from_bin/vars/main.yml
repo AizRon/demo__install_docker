@@ -1,0 +1,11 @@
+install_docker_engine: true
+install_docker_compose: true
+install_bash_completion: true     # if completion don`t work with docker`s command
+
+# format number of version: XX.XX.X, example, https://download.docker.com/linux/static/stable/x86_64/
+docker_ver: 20.10.18
+
+download_dir: /tmp/docker_dwnld
+
+# format number of version: v2.XX.X, see https://github.com/docker/compose/tags
+compose_ver: v2.10.2

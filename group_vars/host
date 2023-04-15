@@ -1,0 +1,4 @@
+ansible_ssh_pass: "{{ prompt_password }}"
+ansible_become_password: "{{ prompt_password }}"
+
+ansible_ssh_common_args: '-o StrictHostKeyChecking=No'

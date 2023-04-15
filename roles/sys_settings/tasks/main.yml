@@ -1,0 +1,66 @@
+# ------------ edit $PATH ------------
+- name: "set_fact: /sbin in $PATH "
+  set_fact:
+    sbin_present: "{{ '/sbin' in ansible_facts.env.PATH }}"
+
+- name: Update $PATH (add '/sbin')
+  block:
+    - name: "Add '/sbin' to PATH for new users"
+      blockinfile:
+        path: /etc/skel/.bashrc
+        block: |
+          # Add /sbin to $PATH
+          if [ "$(echo $PATH | grep /sbin)" == '' ]; then
+              export PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
+          fi
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: "Add '/sbin' to PATH for current user"
+      blockinfile:
+        path: "{{ ansible_facts.env.PWD }}/.bashrc"
+        block: |
+          # Add /sbin to $PATH
+          if [ "$(echo $PATH | grep /sbin)" == '' ]; then
+              export PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
+          fi
+  when: not sbin_present
+
+
+# ------------ Set localtime ------------
+- name: "Set localtime ({{ timezone }})"
+  block:
+    - name: apt install tzdata
+      apt:
+        name: tzdata
+        state: present
+
+    - name: "Set timezone to {{ timezone }}"
+      community.general.timezone:
+        name: "{{ timezone }}"
+  when: ansible_facts.date_time.tz == "UTC"
+
+
+# ------------ set Python3.7 ------------
+- name: "define Python version"
+  set_fact:
+    cur_py_ver: "{{ ansible_facts.python_version.split('.')[:2] | join('.') | float }}"
+    new_py_ver: "{{ set_python_ver | float }}"
+
+- name: update Python
+  block:
+    - name: try install python
+      apt:
+        pkg:
+          - python3.7
+          - python3-distutils
+
+    - name: update symbolic link to python3.7
+      file:
+        src: /usr/bin/python3.7
+        dest: /usr/bin/python3
+        owner: root
+        group: root
+        state: link
+  when: cur_py_ver < new_py_ver

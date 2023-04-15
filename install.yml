@@ -1,0 +1,12 @@
+- name: Install Docker (docker-compose)
+  hosts: all
+  become: yes
+  vars_prompt:
+    - name: prompt_password
+      prompt: "your password"
+
+  roles:
+    - sys_settings      # [ optional ]
+    - common            # needed packages for install docker
+    - inst_from_repo    # install docker using the repository (commit it if you want to install from binaries)
+#    - inst_from_bin     # install docker from binaries
